@@ -64,7 +64,6 @@ export class LoginPage {
             // Wait for either success indicators or error messages
             await Promise.race([
                 // Success indicators
-                this.page.waitForSelector('text=Dashboard', { timeout: 5000 }),
                 this.page.waitForSelector('text=Web Application', { timeout: 5000 }),
                 this.page.waitForSelector('text=Mobile Application', { timeout: 5000 }),
                 this.page.waitForSelector('[data-testid*="dashboard"]', { timeout: 5000 }),

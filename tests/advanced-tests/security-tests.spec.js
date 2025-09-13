@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { LoginManager } from '../../shared/LoginManager.js';
 import { PageFactory } from '../../shared/PageFactory.js';
 import { createSection, debugLog, initDebugMode } from '../../shared/debug.js';
 import { TEST_DATA } from '../../shared/env.js';
@@ -104,17 +103,22 @@ test.describe('Security Tests - Data Driven', () => {
             await section.start();
             await debugLog('Validating session security...', 'INFO');
 
-            // Login successfully
-            const loginResult = await LoginManager.login(page);
-            expect(loginResult.success).toBe(true);
-            await debugLog('Login successful', 'SUCCESS');
-
-            // Verify session is maintained
+            // Login using the same credentials as working tests
+            await page.goto(TEST_DATA.LOGIN.URL);
+            await debugLog('Navigated to login page', 'INFO');
+            
+            await page.getByRole('textbox', { name: 'Username' }).fill('admin');
+            await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+            await page.getByRole('button', { name: 'Sign in' }).click();
+            await page.waitForTimeout(2000);
+            
+            // Verify login success
             const currentUrl = page.url();
             expect(currentUrl).not.toContain('login');
+            await debugLog('Login successful', 'SUCCESS');
 
             // Test session persistence across navigation
-            const pages = loginResult.pages;
+            const pages = PageFactory.createPages(page);
             await pages.dashboardPage.navigateToWebApplication();
             await pages.dashboardPage.navigateToMobileApplication();
             

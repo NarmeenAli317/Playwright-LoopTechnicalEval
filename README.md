@@ -10,9 +10,14 @@ A comprehensive, data-driven Playwright test suite designed for technical evalua
 
 ### Installation & Setup
 ```bash
-# 1. Clone the repository
-git clone <repository-url>
-cd playwright-eval
+# 1. Clone the repository and create .env
+git clone <https://github.com/NarmeenAli317/Playwright-LoopTechnicalEval>
+cd playwright-LoopTechEval
+
+##.env variables
+ENV=DEMO
+USERNAME=
+PASSWORD=
 
 # 2. Install dependencies and browsers
 npm run setup
@@ -65,11 +70,13 @@ This project showcases professional Playwright testing implementation featuring:
 ```
 playwright-eval/
 ├── shared/                     # Core framework utilities
-│   ├── env.js                 # Environment configuration & test data
+│   ├── env.js                 # Environment configuration & settings
 │   ├── debug.js               # Advanced logging system
 │   ├── test-wrappers.js       # Custom test categorization
 │   ├── PlaywrightHandler.js   # Advanced UI interaction handlers
-│   └── statistics.js          # Test analytics & reporting
+│   ├── statistics.js          # Test analytics & reporting
+│   ├── LoginManager.js        # Centralized login management
+│   └── PageFactory.js         # Page object factory
 ├── pages/                     # Page Object Model classes
 │   ├── LoginPage.js           # Authentication page interactions
 │   ├── DashboardPage.js       # Navigation & dashboard management
@@ -79,7 +86,11 @@ playwright-eval/
 │   ├── web-application/       # Web app specific tests
 │   ├── mobile-application/    # Mobile app specific tests
 │   └── advanced-tests/        # Performance & security tests
+├── test-data.json             # Test case data and scenarios
 ├── test-results/              # Execution artifacts
+├── auth.setup.js              # Authentication setup script
+├── auth-state.json            # Pre-authenticated state storage
+├── Jenkinsfile                # CI/CD pipeline configuration
 └── playwright.config.js       # Playwright configuration
 ```
 
@@ -148,34 +159,106 @@ npm run test:unauthenticated
 
 #### Environment Configuration
 ```javascript
-// shared/env.js
-export const TEST_DATA = {
-    LOGIN: {
-        URL: 'https://animated-gingersnap-8cf7f2.netlify.app/',
-        USERNAME: 'admin',
-        PASSWORD: 'password123'
-    },
-    TEST_CASES: {
-        WEB_APPLICATION: [
-            {
-                testKey: 'TC1',
-                taskName: 'Implement user authentication',
-                column: 'To Do',
-                expectedTags: ['Feature', 'High Priority']
-            }
-        ]
+// shared/env.js - Environment-specific settings
+export const ENVIRONMENT_CONFIG = {
+    DEMO: {
+        URLS: {
+            ASANA_DEMO: 'https://animated-gingersnap-8cf7f2.netlify.app/'
+        },
+        CREDENTIALS: {
+            USERNAME: process.env.username,
+            PASSWORD: process.env.password
+        },
+        TIMEOUTS: {
+            DEFAULT: 10000,
+            LOGIN: 15000,
+            NAVIGATION: 8000
+        }
     }
 };
+```
+
+#### Test Data Configuration
+```json
+// test-data.json - All test case data
+{
+  "testScenarios": [
+    {
+      "testKey": "TC1",
+      "testName": "Verify user authentication task in To Do column",
+      "description": "Login to Demo App, navigate to Web Application, verify 'Implement user authentication' is in the 'To Do' column with tags 'Feature' and 'High Priority'",
+      "application": "Web Application",
+      "column": "To Do",
+      "taskName": "Implement user authentication",
+      "expectedTags": ["Feature", "High Priority"],
+      "testTypes": ["ui", "Feature", "High Priority"],
+      "priority": "high",
+      "category": "regression"
+    }
+  ],
+  "negativeTestScenarios": [
+    {
+      "testKey": "NEG_LOGIN_INVALID_PASSWORD",
+      "testName": "Negative Test - Invalid Password",
+      "description": "Test login with valid username but invalid password",
+      "username": "admin",
+      "password": "wrongpassword",
+      "expectedResult": "login_failure",
+      "testTypes": ["ui", "security"],
+      "category": "regression"
+    }
+  ]
+}
 ```
 
 #### Test Data Structure
 Each test case includes:
 - **testKey**: Unique identifier
-- **taskName**: Task to verify
-- **column**: Expected column location
-- **expectedTags**: Expected task tags
-- **category**: Test type (smoke/regression/release)
+- **testName**: Descriptive test name
+- **description**: Detailed test description
 - **application**: Target application (Web/Mobile)
+- **column**: Expected column location
+- **taskName**: Task to verify
+- **expectedTags**: Expected task tags
+- **testTypes**: Test categorization tags for filtering
+- **priority**: Test priority (high/medium/low)
+- **category**: Test type (smoke/regression/release)
+
+**Negative Test Scenarios** include additional fields:
+- **username**: Test username for negative testing
+- **password**: Test password for negative testing
+- **expectedResult**: Expected outcome (e.g., "login_failure")
+
+#### Environment Variables (.env file)
+Create a `.env` file in the project root to customize environment settings:
+
+```env
+# Environment Configuration
+ENV=DEMO
+
+# Login Credentials
+username=admin
+password=password123
+
+# Optional: Environment-specific URLs
+# ASANA_DEMO_URL_UAT=https://uat.animated-gingersnap-8cf7f2.netlify.app/
+# ASANA_DEMO_URL_PROD=https://www.animated-gingersnap-8cf7f2.netlify.app/
+
+# Optional: Browser settings
+# HEADLESS_UAT=true
+# HEADLESS_PROD=true
+```
+
+**Available Environment Variables:**
+- `ENV`: Environment type (DEMO|UAT|PROD) - Default: DEMO
+- `username`: Login username (lowercase) - Default: admin
+- `password`: Login password (lowercase) - Default: password123
+- `ASANA_DEMO_URL_UAT`: UAT environment URL (optional)
+- `ASANA_DEMO_URL_PROD`: Production environment URL (optional)
+- `HEADLESS_UAT`: Run UAT tests in headless mode (true|false) - Default: true
+- `HEADLESS_PROD`: Run Production tests in headless mode (true|false) - Default: true
+
+**Note:** Environment variables use lowercase naming (e.g., `username`, `password`) as defined in `shared/env.js`.
 
 ## 🔧 Advanced Features
 
@@ -196,9 +279,10 @@ export class LoginPage {
 ```
 
 ### Data-Driven Testing Framework
-- **Centralized Configuration**: All test data managed in `shared/env.js`
+- **Centralized Test Data**: All test cases managed in `test-data.json`
+- **Environment Configuration**: Environment settings in `shared/env.js`
 - **JSON-Based Test Cases**: Easy to add/modify test scenarios
-- **Environment Flexibility**: Support for multiple test environments
+- **Environment Flexibility**: Support for multiple test environments (DEMO/UAT/PROD)
 - **Dynamic Test Generation**: Tests generated from configuration data
 
 ### Advanced Logging System
@@ -251,20 +335,35 @@ await handler.waitForElementWithText(selector, text);
 ### Jenkins Pipeline
 ```groovy
 pipeline {
-    agent any
+    agent { label 'QA' }
+    parameters {
+        choice(name: 'TEST_ENVIRONMENT', choices: ['DEMO', 'UAT', 'PROD'])
+        choice(name: 'NPM_SCRIPT', choices: ['test', 'test:web', 'test:mobile', 'test:login', 'test:security', 'test:performance', 'test:smoke', 'test:regression'])
+        string(name: 'CUSTOM_SCRIPT', defaultValue: '')
+    }
+    environment {
+        NODE_OPTIONS = '--max-old-space-size=4096'
+        ENV = "${params.TEST_ENVIRONMENT}"
+        CI = 'true'
+    }
     stages {
-        stage('Install') {
-            steps { sh 'npm install' }
-        }
-        stage('Test') {
-            steps { sh 'npm test' }
-        }
-        stage('Report') {
-            steps { publishHTML([...]) }
-        }
+        stage('Setup') { /* Install dependencies and browsers */ }
+        stage('Run Tests') { /* Execute selected test suite */ }
+    }
+    post {
+        always { /* Publish HTML reports and archive artifacts */ }
+        failure { /* Diagnostic information */ }
     }
 }
 ```
+
+**Features:**
+- Multi-environment support (DEMO/UAT/PROD)
+- Flexible test selection via parameters
+- HTML report generation and artifact archiving
+- Comprehensive error diagnostics
+
+**Available Scripts:** `test`, `test:web`, `test:mobile`, `test:login`, `test:security`, `test:performance`, `test:smoke`, `test:regression`, `test:ui`, `test:feature`, `test:bug`, `test:design`, `test:high-priority`
 
 ## ✅ Technical Evaluation Compliance
 
@@ -290,10 +389,5 @@ This implementation demonstrates:
 - **Documentation**: Clear, professional documentation
 - **CI/CD Ready**: Jenkins integration and automated execution
 
-## 📄 License
-
-ISC License - See LICENSE file for details
-
----
 
 **Built with ❤️ for Technical Evaluation Excellence**

@@ -12,7 +12,7 @@ function extractTagsToAnnotations(testName, testInfo, additionalMetadata = {}) {
             testInfo.annotations.push({ type: 'category', description: tag });
         }
         // Test type tags (ui, api, reports, questionnaire, security, accessibility, performance)
-        else if (['ui', 'api', 'security', 'accessibility', 'performance', 'Design', 'Feature', 'Bug', 'High Priority'].includes(cleanTag)) {
+        else if (['ui', 'api', 'security', 'accessibility', 'performance', 'Design', 'Feature', 'Bug', 'High-Priority', 'High Priority'].includes(cleanTag)) {
             testInfo.annotations.push({ type: 'test_type', description: tag });
         }
     });
@@ -41,7 +41,7 @@ export const smokeTest = (title, opts, fn) => {
 
     // Handle both single testType and multiple testTypes
     const testTypes = opts.testTypes || [opts.testType];
-    const testTypeTags = testTypes.map(type => `@${type}`).join(' ');
+    const testTypeTags = testTypes.map(type => `@${type.replace(/\s+/g, '-')}`).join(' ');
     
     const testName = `@smoke ${testTypeTags} ${title}`;
     
@@ -68,7 +68,7 @@ export const releaseTest = (title, opts, fn) => {
 
     // Handle both single testType and multiple testTypes
     const testTypes = opts.testTypes || [opts.testType];
-    const testTypeTags = testTypes.map(type => `@${type}`).join(' ');
+    const testTypeTags = testTypes.map(type => `@${type.replace(/\s+/g, '-')}`).join(' ');
     
     const testName = `@release @smoke ${testTypeTags} ${title}`;
     
@@ -95,7 +95,7 @@ export const regressionTest = (title, opts, fn) => {
 
     // Handle both single testType and multiple testTypes
     const testTypes = opts.testTypes || [opts.testType];
-    const testTypeTags = testTypes.map(type => `@${type}`).join(' ');
+    const testTypeTags = testTypes.map(type => `@${type.replace(/\s+/g, '-')}`).join(' ');
     
     const testName = `@regression ${testTypeTags} ${title}`;
     
@@ -121,7 +121,7 @@ export const customTest = (title, opts, fn) => {
     }
 
     const testTypes = opts.testTypes || [opts.testType];
-    const testTypeTags = testTypes.map(type => `@${type}`).join(' ');
+    const testTypeTags = testTypes.map(type => `@${type.replace(/\s+/g, '-')}`).join(' ');
     const categoryTags = opts.categories ? opts.categories.map(cat => `@${cat}`).join(' ') : '';
     
     const testName = `${categoryTags} ${testTypeTags} ${title}`.trim();

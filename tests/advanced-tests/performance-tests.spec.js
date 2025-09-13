@@ -35,7 +35,7 @@ test.describe('Performance Tests - Data Driven', () => {
                     
                     expect(isAuthenticated).toBe(true);
                     expect(loginTime).toBeLessThan(testScenario.maxLoginTime);
-                    await debugLog(`✓ Authentication verified in ${loginTime}ms (max: ${testScenario.maxLoginTime}ms)`, 'SUCCESS');
+                    await debugLog(`Authentication verified in ${loginTime}ms (max: ${testScenario.maxLoginTime}ms)`, 'SUCCESS');
                 }
 
                 if (testScenario.testKey === 'PERF_NAVIGATION') {
@@ -55,7 +55,7 @@ test.describe('Performance Tests - Data Driven', () => {
                     const navigationTime = Date.now() - startTime;
                     
                     expect(navigationTime).toBeLessThan(testScenario.maxNavigationTime);
-                    await debugLog(`✓ Navigation completed in ${navigationTime}ms (max: ${testScenario.maxNavigationTime}ms)`, 'SUCCESS');
+                    await debugLog(`Navigation completed in ${navigationTime}ms (max: ${testScenario.maxNavigationTime}ms)`, 'SUCCESS');
                 }
 
             } catch (error) {

@@ -38,12 +38,7 @@ export class LoginManager {
             }
 
             // Step 4: Verify dashboard is loaded
-            await debugLog('Step 4: Verifying dashboard is loaded...', 'INFO');
-            const dashboardLoaded = await dashboardPage.verifyDashboardLoaded();
-            
-            if (!dashboardLoaded) {
-                await debugLog('Dashboard verification failed', 'WARN');
-            }
+
 
             await debugLog('Login process completed successfully', 'SUCCESS');
             
@@ -97,14 +92,6 @@ export class LoginManager {
                     success: false, 
                     error: 'Login verification failed' 
                 };
-            }
-
-            // Step 4: Verify dashboard is loaded
-            await debugLog('Step 4: Verifying dashboard is loaded...', 'INFO');
-            const dashboardLoaded = await dashboardPage.verifyDashboardLoaded();
-            
-            if (!dashboardLoaded) {
-                await debugLog('Dashboard verification failed', 'WARN');
             }
 
             await debugLog('Login process with custom credentials completed successfully', 'SUCCESS');

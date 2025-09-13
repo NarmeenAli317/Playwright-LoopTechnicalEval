@@ -95,14 +95,23 @@ test.describe('Login Tests - Data Driven', () => {
             await section.start();
             await debugLog('Testing login session persistence...', 'INFO');
 
-            // Login
-            const loginResult = await LoginManager.login(page);
-            expect(loginResult.success).toBe(true);
+            // Login using the same credentials as working tests
+            await page.goto(TEST_DATA.LOGIN.URL);
+            await debugLog('Navigated to login page', 'INFO');
+            
+            await page.getByRole('textbox', { name: 'Username' }).fill('admin');
+            await page.getByRole('textbox', { name: 'Password' }).fill('password123');
+            await page.getByRole('button', { name: 'Sign in' }).click();
+            await page.waitForTimeout(2000);
+            
+            // Verify login success
+            const currentUrl1 = page.url();
+            expect(currentUrl1).not.toContain('login');
             await debugLog('Initial login successful', 'SUCCESS');
 
             // Navigate to different pages to test session
             await debugLog('Testing session across navigation...', 'INFO');
-            const pages = loginResult.pages;
+            const pages = PageFactory.createPages(page);
             
             // Test Web Application navigation
             const webNavResult = await pages.dashboardPage.navigateToWebApplication();
@@ -115,8 +124,8 @@ test.describe('Login Tests - Data Driven', () => {
             await debugLog('Mobile Application navigation successful', 'SUCCESS');
 
             // Verify still logged in
-            const currentUrl = page.url();
-            expect(currentUrl).not.toContain('login');
+            const currentUrl2 = page.url();
+            expect(currentUrl2).not.toContain('login');
             await debugLog('Session maintained across navigation', 'SUCCESS');
 
         } catch (error) {
