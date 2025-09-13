@@ -1,17 +1,39 @@
+/**
+ * LoginPage - Page Object Model for Authentication
+ * 
+ * This class encapsulates all login-related functionality and selectors
+ * following the Page Object Model pattern. It provides a clean abstraction
+ * layer between tests and the login page implementation, making tests more
+ * maintainable and readable.
+ * 
+ * Key Features:
+ * - Centralized selector management
+ * - Reusable login methods
+ * - Error handling and validation
+ * - Integration with custom Playwright handlers
+ * - Comprehensive logging for debugging
+ */
+
 import { debugLog } from '../shared/debug.js';
 import { TEST_DATA } from '../shared/env.js';
 import { PlaywrightHandler } from '../shared/PlaywrightHandler.js';
 
 export class LoginPage {
+    /**
+     * Initialize the LoginPage with Playwright page instance
+     * 
+     * @param {Page} page - Playwright page instance
+     */
     constructor(page) {
         this.page = page;
         this.handler = new PlaywrightHandler(page);
+        
+        // Page element selectors using semantic locators for better maintainability
+        this.usernameInput = page.getByRole('textbox', { name: 'Username' });
+        this.passwordInput = page.getByRole('textbox', { name: 'Password' });
+        this.loginButton = page.getByRole('button', { name: 'Sign in' });
+        this.errorMessage = page.locator('div.text-red-500.text-sm');
     }
-
-    // Selectors - following POM pattern
-    get usernameInput() { return this.page.getByRole('textbox', { name: 'Username' }); }
-    get passwordInput() { return this.page.getByRole('textbox', { name: 'Password' }); }
-    get loginButton() { return this.page.getByRole('button', { name: 'Sign in' }); }
 
     async navigateToLogin(url = null) {
         const loginUrl = url || TEST_DATA.LOGIN.URL;
@@ -29,14 +51,9 @@ export class LoginPage {
         // Use POM selectors
         await this.usernameInput.click();
         await this.usernameInput.fill(loginEmail);
-        await debugLog('Username entered', 'SUCCESS');
-
         await this.passwordInput.click();
         await this.passwordInput.fill(loginPassword);
-        await debugLog('Password entered', 'SUCCESS');
-
         await this.loginButton.click();
-        await debugLog('Login button clicked', 'SUCCESS');
 
         // Wait for navigation or error
         await this.page.waitForLoadState('networkidle');

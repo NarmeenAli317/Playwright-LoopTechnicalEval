@@ -5,12 +5,11 @@ export class DashboardPage {
     constructor(page) {
         this.page = page;
         this.handler = new PlaywrightHandler(page);
+        this.webApplicationLink = page.getByRole('button', { name: 'Web Application Main web' });
+        this.mobileApplicationLink = page.getByRole('button', { name: 'Mobile Application Native' });
+        this.logoutButton = <button class="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out h-4 w-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>Logout</button>
     }
-
-    // Selectors - following POM pattern
-    get webApplicationLink() { return this.page.getByRole('button', { name: 'Web Application Main web' }); }
-    get mobileApplicationLink() { return this.page.getByRole('button', { name: 'Mobile Application Native' }); }
-
+    
     async verifyDashboardLoaded() {
         try {
             // Wait for dashboard elements to be visible
@@ -21,7 +20,7 @@ export class DashboardPage {
                 this.page.waitForSelector('[data-testid*="home"]', { timeout: 10000 })
             ]);
 
-            await debugLog('Dashboard loaded successfully', 'SUCCESS');
+            // Dashboard loaded successfully
             return true;
         } catch (error) {
             await debugLog(`Dashboard verification failed: ${error.message}`, 'ERROR');
@@ -29,13 +28,48 @@ export class DashboardPage {
         }
     }
 
+    async verifyUserIsAuthenticated() {
+        try {
+            // Check if at least one application link is visible (indicates user is logged in)
+            const webAppVisible = await this.webApplicationLink.isVisible().catch(() => false);
+            const mobileAppVisible = await this.mobileApplicationLink.isVisible().catch(() => false);
+            
+            if (webAppVisible || mobileAppVisible) {
+                await debugLog('User authentication verified - application links visible', 'SUCCESS');
+                return true;
+            } else {
+                await debugLog('User authentication verification failed - no application links visible', 'ERROR');
+                return false;
+            }
+        } catch (error) {
+            await debugLog(`User authentication verification failed: ${error.message}`, 'ERROR');
+            return false;
+        }
+    }
+
+    async verifyUserIsNotAuthenticated() {
+        try {
+            // Check if application links are NOT visible (indicates user is not logged in)
+            const webAppCount = await this.webApplicationLink.count();
+            const mobileAppCount = await this.mobileApplicationLink.count();
+            
+            if (webAppCount === 0 && mobileAppCount === 0) {
+                await debugLog('User authentication verified - no application links visible', 'SUCCESS');
+                return true;
+            } else {
+                await debugLog('User appears to be authenticated when they should not be', 'ERROR');
+                return false;
+            }
+        } catch (error) {
+            await debugLog(`User authentication verification failed: ${error.message}`, 'ERROR');
+            return false;
+        }
+    }
+
     async navigateToWebApplication() {
-        await debugLog('Navigating to Web Application...', 'INFO');
-        
         try {
             // Use POM selector
             await this.webApplicationLink.click();
-            await debugLog('Web Application link clicked', 'SUCCESS');
 
             // Wait for navigation
             await this.page.waitForLoadState('networkidle');
@@ -61,7 +95,6 @@ export class DashboardPage {
         try {
             // Use POM selector
             await this.mobileApplicationLink.click();
-            await debugLog('Mobile Application link clicked', 'SUCCESS');
 
             // Wait for navigation
             await this.page.waitForLoadState('networkidle');
@@ -90,8 +123,6 @@ export class DashboardPage {
                 this.page.waitForSelector('.kanban', { timeout: 5000 }),
                 this.page.waitForSelector('.column', { timeout: 5000 })
             ]);
-
-            await debugLog('Web Application page loaded', 'SUCCESS');
             return true;
         } catch (error) {
             await debugLog(`Web Application verification failed: ${error.message}`, 'ERROR');
@@ -109,7 +140,7 @@ export class DashboardPage {
                 this.page.waitForSelector('.column', { timeout: 5000 })
             ]);
 
-            await debugLog('Mobile Application page loaded', 'SUCCESS');
+            await debugLog('Mobile Application page loaded', 'INFO');
             return true;
         } catch (error) {
             await debugLog(`Mobile Application verification failed: ${error.message}`, 'ERROR');

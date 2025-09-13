@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { createSection, debugLog, initDebugMode } from '../../shared/debug.js';
+import { TEST_DATA } from '../../shared/env.js';
 import { PageFactory } from '../../shared/PageFactory.js';
 import { regressionTest, smokeTest } from '../../shared/test-wrappers.js';
 import testData from '../../test-data.json' assert { type: 'json' };
@@ -16,7 +17,7 @@ test.describe('Web Application Tests - Data Driven', () => {
     webApplicationTests.forEach((testScenario) => {
         const testFunction = testScenario.category === 'smoke' ? smokeTest : regressionTest;
         
-        testFunction(testScenario.testName, {
+        testFunction(`${testScenario.testKey} - ${testScenario.taskName} in ${testScenario.column}`, {
             testTypes: testScenario.testTypes,
             testKey: testScenario.testKey
         }, async ({ page }) => {
@@ -24,30 +25,32 @@ test.describe('Web Application Tests - Data Driven', () => {
             
             try {
                 await section.start();
-                await debugLog(`Executing ${testScenario.testId}: ${testScenario.description}`, 'INFO');
+                await debugLog(`Executing ${testScenario.testKey}: ${testScenario.description}`, 'INFO');
 
-                // Step 1: Verify we're already logged in (storage state)
-                await debugLog('Step 1: Verifying authentication state...', 'INFO');
+                // Step 1: Wait for page to load (storage state should handle authentication)
+                await debugLog('Step 1: Waiting for page to load with storage state...', 'INFO');
                 await page.waitForLoadState('networkidle');
-                await expect(page.locator('text=Dashboard')).toBeVisible();
-                await debugLog('✓ Already authenticated via storage state', 'SUCCESS');
-
-                // Step 2: Create page objects
-                await debugLog('Step 2: Creating page objects...', 'INFO');
+                
+                // Step 2: Create page objects and navigate to dashboard
+                await debugLog('Step 2: Creating page objects and navigating to dashboard...', 'INFO');
                 const pages = PageFactory.createPages(page);
-                await debugLog('Page objects created', 'SUCCESS');
+                await page.goto(TEST_DATA.LOGIN.URL);
+                await pages.dashboardPage.waitForPageLoad();
+                
+                const isAuthenticated = await pages.dashboardPage.verifyUserIsAuthenticated();
+                expect(isAuthenticated).toBe(true);
+                await debugLog('Authenticated via storage state', 'SUCCESS');
 
                 // Step 3: Navigate to Web Application
                 await debugLog('Step 3: Navigating to Web Application...', 'INFO');
                 const navigationResult = await pages.dashboardPage.navigateToWebApplication();
                 expect(navigationResult).toBe(true);
-                await debugLog('Navigation to Web Application successful', 'SUCCESS');
+                await debugLog('Navigation to Web Application successful', 'INFO');
 
                 // Step 4: Wait for kanban board
                 await debugLog('Step 4: Waiting for kanban board to load...', 'INFO');
                 const kanbanLoaded = await pages.kanbanPage.waitForKanbanBoard();
                 expect(kanbanLoaded).toBe(true);
-                await debugLog('Kanban board loaded', 'SUCCESS');
 
                 // Step 5: Verify task in specified column (data-driven)
                 await debugLog(`Step 5: Verifying "${testScenario.taskName}" task in ${testScenario.column} column...`, 'INFO');
@@ -61,13 +64,13 @@ test.describe('Web Application Tests - Data Driven', () => {
                 expect(verificationResult.column).toBe(testScenario.column);
                 expect(verificationResult.tags).toEqual(expect.arrayContaining(testScenario.expectedTags));
                 
-                await debugLog(`✓ Task "${testScenario.taskName}" found in ${testScenario.column} column`, 'SUCCESS');
-                await debugLog(`✓ Tags verified: ${testScenario.expectedTags.join(', ')}`, 'SUCCESS');
+                await debugLog(`Task "${testScenario.taskName}" found in ${testScenario.column} column`, 'SUCCESS');
+                await debugLog(`Tags verified: ${testScenario.expectedTags.join(', ')}`, 'SUCCESS');
 
-                await debugLog(`${testScenario.testId} completed successfully`, 'SUCCESS');
+                await debugLog(`${testScenario.testKey} completed successfully`, 'SUCCESS');
 
             } catch (error) {
-                await debugLog(`${testScenario.testId} failed: ${error.message}`, 'ERROR');
+                await debugLog(`${testScenario.testKey} failed: ${error.message}`, 'ERROR');
                 throw error;
             } finally {
                 await section.end();

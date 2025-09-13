@@ -23,7 +23,7 @@ export class LoginManager {
 
             // Step 2: Perform login
             await debugLog('Step 2: Performing login...', 'INFO');
-            await loginPage.login();
+            await loginPage.login(TEST_DATA.LOGIN.USERNAME, TEST_DATA.LOGIN.PASSWORD);
 
             // Step 3: Verify login success
             await debugLog('Step 3: Verifying login success...', 'INFO');

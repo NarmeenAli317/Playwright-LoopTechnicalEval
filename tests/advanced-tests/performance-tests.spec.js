@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
-import { LoginManager } from '../../shared/LoginManager.js';
 import { createSection, debugLog, initDebugMode } from '../../shared/debug.js';
 import { TEST_DATA } from '../../shared/env.js';
+import { PageFactory } from '../../shared/PageFactory.js';
 import { releaseTest, smokeTest } from '../../shared/test-wrappers.js';
 import testData from '../../test-data.json' assert { type: 'json' };
 
@@ -11,7 +11,7 @@ initDebugMode();
 test.describe('Performance Tests - Data Driven', () => {
     // Data-driven performance tests from JSON
     testData.performanceTestScenarios.forEach((testScenario) => {
-        smokeTest(testScenario.testName, {
+        smokeTest(`${testScenario.testKey} - ${testScenario.testName}`, {
             testTypes: testScenario.testTypes,
             testKey: testScenario.testKey
         }, async ({ page }) => {
@@ -19,22 +19,35 @@ test.describe('Performance Tests - Data Driven', () => {
             
             try {
                 await section.start();
-                await debugLog(`Executing ${testScenario.testId}: ${testScenario.description}`, 'INFO');
+                await debugLog(`Executing ${testScenario.testKey}: ${testScenario.description}`, 'INFO');
 
-                if (testScenario.testId === 'PERF_LOGIN') {
+                if (testScenario.testKey === 'PERF_LOGIN') {
+                    // Performance tests should use storage state, not login
                     const startTime = Date.now();
-                    const loginResult = await LoginManager.login(page);
+                    const pages = PageFactory.createPages(page);
+                    
+                    // Navigate to dashboard first
+                    await page.goto(TEST_DATA.LOGIN.URL);
+                    await pages.dashboardPage.waitForPageLoad();
+                    
+                    const isAuthenticated = await pages.dashboardPage.verifyUserIsAuthenticated();
                     const loginTime = Date.now() - startTime;
                     
-                    expect(loginResult.success).toBe(true);
+                    expect(isAuthenticated).toBe(true);
                     expect(loginTime).toBeLessThan(testScenario.maxLoginTime);
-                    await debugLog(`✓ Login completed in ${loginTime}ms (max: ${testScenario.maxLoginTime}ms)`, 'SUCCESS');
+                    await debugLog(`✓ Authentication verified in ${loginTime}ms (max: ${testScenario.maxLoginTime}ms)`, 'SUCCESS');
                 }
 
-                if (testScenario.testId === 'PERF_NAVIGATION') {
-                    const loginResult = await LoginManager.login(page);
-                    expect(loginResult.success).toBe(true);
-                    const pages = loginResult.pages;
+                if (testScenario.testKey === 'PERF_NAVIGATION') {
+                    // Performance tests should use storage state, not login
+                    const pages = PageFactory.createPages(page);
+                    
+                    // Navigate to dashboard first
+                    await page.goto(TEST_DATA.LOGIN.URL);
+                    await pages.dashboardPage.waitForPageLoad();
+                    
+                    const isAuthenticated = await pages.dashboardPage.verifyUserIsAuthenticated();
+                    expect(isAuthenticated).toBe(true);
 
                     const startTime = Date.now();
                     await pages.dashboardPage.navigateToWebApplication();
@@ -46,7 +59,7 @@ test.describe('Performance Tests - Data Driven', () => {
                 }
 
             } catch (error) {
-                await debugLog(`${testScenario.testId} failed: ${error.message}`, 'ERROR');
+                await debugLog(`${testScenario.testKey} failed: ${error.message}`, 'ERROR');
                 throw error;
             } finally {
                 await section.end();
@@ -98,10 +111,15 @@ test.describe('Performance Tests - Data Driven', () => {
 
             const startTime = Date.now();
             
-            // Complete workflow
-            const loginResult = await LoginManager.login(page);
-            expect(loginResult.success).toBe(true);
-            const pages = loginResult.pages;
+            // Complete workflow - use storage state
+            const pages = PageFactory.createPages(page);
+            
+            // Navigate to dashboard first
+            await page.goto(TEST_DATA.LOGIN.URL);
+            await pages.dashboardPage.waitForPageLoad();
+            
+            const isAuthenticated = await pages.dashboardPage.verifyUserIsAuthenticated();
+            expect(isAuthenticated).toBe(true);
             
             await debugLog('Navigating to Web Application...', 'INFO');
             await pages.dashboardPage.navigateToWebApplication();

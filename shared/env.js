@@ -1,32 +1,66 @@
+/**
+ * Environment Configuration and Test Data Management
+ * 
+ * This module provides centralized configuration management for different
+ * environments (DEMO, UAT, PROD) with dynamic credential loading, URL
+ * management, and timeout configurations. It demonstrates enterprise-level
+ * configuration management patterns with environment-specific settings.
+ * 
+ * Key Features:
+ * - Multi-environment support (DEMO, UAT, PROD)
+ * - Secure credential management via .env files
+ * - Dynamic configuration loading based on environment
+ * - Centralized test data management
+ * - Environment-specific timeout and browser settings
+ */
+
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { debugLog } from './debug.js';
 
+// ES Module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const envPath = path.resolve(__dirname, '../.env');
 
+// Load environment variables from .env file
 dotenv.config({ 
     path: envPath,
-    debug: false,
-    quiet: true
+    debug: false,    // Disable dotenv debug output
+    quiet: true      // Suppress dotenv warnings
 });
 
+// Determine current environment with fallback to DEMO
 const currentEnv = process.env.ENV || 'DEMO';
 
+// Validate environment variable
 if (!currentEnv) {
     console.error('❌ ENV required: ENV=DEMO|UAT|PROD');
     process.exit(1);
 }
 
+// Validate against allowed environments
 const VALID_ENVIRONMENTS = ['DEMO', 'UAT', 'PROD'];
 if (!VALID_ENVIRONMENTS.includes(currentEnv.toUpperCase())) {
     console.error(`❌ Invalid ENV: ${currentEnv}. Use: ${VALID_ENVIRONMENTS.join('|')}`);
     process.exit(1);
 }
 
+// Display current environment for visibility
 console.log(`🎯 ${currentEnv}`);
+
+/**
+ * Global credentials configuration
+ * 
+ * Centralized credential management with fallback values for development.
+ * In production, these should be loaded from secure environment variables
+ * or a secrets management system.
+ */
+export const CREDENTIALS = {
+    USERNAME: process.env.username || 'admin',
+    PASSWORD: process.env.password || 'password123'
+};
 
 // Environment Configuration for Technical Evaluation
 export const ENVIRONMENT_CONFIG = {
@@ -34,12 +68,6 @@ export const ENVIRONMENT_CONFIG = {
         NAME: 'DEMO',
         URLS: {
             ASANA_DEMO: 'https://animated-gingersnap-8cf7f2.netlify.app/'
-        },
-        CREDENTIALS: {
-            DEMO_USER: {
-                EMAIL: 'admin',
-                PASSWORD: 'password123'
-            }
         },
         TIMEOUTS: {
             DEFAULT: 10000,
@@ -50,17 +78,23 @@ export const ENVIRONMENT_CONFIG = {
         BROWSER: {
             HEADLESS: true,
             VIEWPORT: { width: 1280, height: 720 }
+        },
+        CREDENTIALS: {
+            DEMO_USER: {
+                USERNAME: process.env.username || 'admin',
+                PASSWORD: process.env.password || 'password123'
+            }
         }
     },
     UAT: {
         NAME: 'UAT',
         URLS: {
-            ASANA_DEMO: process.env.ASANA_DEMO_URL_UATR || 'https://animated-gingersnap-8cf7f2.netlify.app/'
+            ASANA_DEMO: process.env.ASANA_DEMO_URL_UAT || 'https://uat.animated-gingersnap-8cf7f2.netlify.app/'
         },
         CREDENTIALS: {
             DEMO_USER: {
-                EMAIL: process.env.ASANA_DEMO_EMAIL_UAT || 'admin',
-                PASSWORD: process.env.ASANA_DEMO_PASSWORD_UATR || 'password123'
+                USERNAME: process.env.username || 'admin', // sensitive data stored in .env file. this is just for demo purposes.
+                PASSWORD: process.env.password || 'password123'
             }
         },
         TIMEOUTS: {
@@ -70,19 +104,19 @@ export const ENVIRONMENT_CONFIG = {
             KANBAN_LOAD: 15000
         },
         BROWSER: {
-            HEADLESS: process.env.HEADLESS_UATR === 'false' ? false : true,
+            HEADLESS: process.env.HEADLESS_UAT === 'false' ? false : true,
             VIEWPORT: { width: 1280, height: 720 }
         }
     },
     PROD: {
         NAME: 'PROD',
         URLS: {
-            ASANA_DEMO: process.env.ASANA_DEMO_URL_PROD || 'https://animated-gingersnap-8cf7f2.netlify.app/'
+            ASANA_DEMO: process.env.ASANA_DEMO_URL_PROD || 'https://www.animated-gingersnap-8cf7f2.netlify.app/'
         },
         CREDENTIALS: {
             DEMO_USER: {
-                EMAIL: process.env.ASANA_DEMO_EMAIL_PROD || 'admin',
-                PASSWORD: process.env.ASANA_DEMO_PASSWORD_PROD || 'password123'
+                USERNAME: process.env.username || 'admin',
+                PASSWORD: process.env.password || 'password123'
             }
         },
         TIMEOUTS: {
@@ -127,112 +161,8 @@ export const CURRENT_ENV = new Proxy({}, {
 export const TEST_DATA = {
     LOGIN: {
         URL: CURRENT_ENV.URLS.ASANA_DEMO,
-        EMAIL: CURRENT_ENV.CREDENTIALS.DEMO_USER.EMAIL,
-        PASSWORD: CURRENT_ENV.CREDENTIALS.DEMO_USER.PASSWORD
-    },
-    TEST_CASES: {
-        WEB_APPLICATION: [
-            {
-                id: 'TC1',
-                name: 'Verify user authentication task in To Do column',
-                description: 'Login to Demo App, navigate to Web Application, verify "Implement user authentication" is in the "To Do" column with tags "Feature" and "High Priority"',
-                application: 'Web Application',
-                taskName: 'Implement user authentication',
-                column: 'To Do',
-                expectedTags: ['Feature', 'High Priority'],
-                priority: 'high',
-                category: 'smoke'
-            },
-            {
-                id: 'TC2',
-                name: 'Verify navigation bug task in To Do column',
-                description: 'Login to Demo App, navigate to Web Application, verify "Fix navigation bug" is in the "To Do" column with tag "Bug"',
-                application: 'Web Application',
-                taskName: 'Fix navigation bug',
-                column: 'To Do',
-                expectedTags: ['Bug'],
-                priority: 'medium',
-                category: 'regression'
-            },
-            {
-                id: 'TC3',
-                name: 'Verify design system updates task in In Progress column',
-                description: 'Login to Demo App, navigate to Web Application, verify "Design system updates" is in the "In Progress" column with tag "Design"',
-                application: 'Web Application',
-                taskName: 'Design system updates',
-                column: 'In Progress',
-                expectedTags: ['Design'],
-                priority: 'medium',
-                category: 'regression'
-            }
-        ],
-        MOBILE_APPLICATION: [
-            {
-                id: 'TC4',
-                name: 'Verify push notification system task in To Do column',
-                description: 'Login to Demo App, navigate to Mobile Application, verify "Push notification system" is in the "To Do" column with tag "Feature"',
-                application: 'Mobile Application',
-                taskName: 'Push notification system',
-                column: 'To Do',
-                expectedTags: ['Feature'],
-                priority: 'medium',
-                category: 'smoke'
-            },
-            {
-                id: 'TC5',
-                name: 'Verify offline mode task in In Progress column',
-                description: 'Login to Demo App, navigate to Mobile Application, verify "Offline mode" is in the "In Progress" column with tags "Feature" and "High Priority"',
-                application: 'Mobile Application',
-                taskName: 'Offline mode',
-                column: 'In Progress',
-                expectedTags: ['Feature', 'High Priority'],
-                priority: 'high',
-                category: 'smoke'
-            },
-            {
-                id: 'TC6',
-                name: 'Verify app icon design task in Done column',
-                description: 'Login to Demo App, navigate to Mobile Application, verify "App icon design" is in the "Done" column with tag "Design"',
-                application: 'Mobile Application',
-                taskName: 'App icon design',
-                column: 'Done',
-                expectedTags: ['Design'],
-                priority: 'low',
-                category: 'regression'
-            }
-        ]
-    },
-    SELECTORS: {
-        LOGIN: {
-            USERNAME_INPUT: "input[placeholder='Username']",
-            PASSWORD_INPUT: "input[placeholder='Password']", 
-            LOGIN_BUTTON: "button:has-text('Sign in')",
-            LOGIN_ERROR_MESSAGE: "div.text-red-500.text-sm"
-        },
-        NAVIGATION: {
-            WEB_APPLICATION_LINK: "button:has-text('Web Application Main web')",
-            MOBILE_APPLICATION_LINK: "button:has-text('Mobile Application Native')"
-        },
-        KANBAN: {
-            TO_DO_COLUMN: "h2:has-text('To Do')",
-            IN_PROGRESS_COLUMN: "h2:has-text('In Progress')",
-            DONE_COLUMN: "h2:has-text('Done')",
-            TASK_CARD: "button, [role='button']",
-            TASK_TITLE: "text=Implement user authentication, text=Fix navigation bug, text=Design system updates, text=Push notification system, text=Offline mode, text=App icon design",
-            TASK_TAGS: "text=Feature, text=High Priority, text=Bug, text=Design"
-        }
-    },
-    
-    // Condensed reusable selectors - much easier to use!
-    SELECTORS: {
-        // Login selectors
-        username: (page) => page.getByRole('textbox', { name: 'Username' }),
-        password: (page) => page.getByRole('textbox', { name: 'Password' }),
-        loginBtn: (page) => page.getByRole('button', { name: 'Sign in' }),
-        
-        // Navigation selectors
-        webApp: (page) => page.getByRole('button', { name: 'Web Application Main web' }),
-        mobileApp: (page) => page.getByRole('button', { name: 'Mobile Application Native' })
+        USERNAME: CREDENTIALS.USERNAME,
+        PASSWORD: CREDENTIALS.PASSWORD
     }
 };
 

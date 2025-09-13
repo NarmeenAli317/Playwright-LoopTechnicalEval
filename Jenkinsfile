@@ -3,8 +3,6 @@ pipeline {
     
     parameters {
         choice(name: 'TEST_SUITE', choices: ['all', 'web', 'mobile', 'smoke', 'regression'], description: 'Select test suite to run')
-        booleanParam(name: 'DEBUG_MODE', defaultValue: false, description: 'Run tests in debug mode')
-        booleanParam(name: 'UI_MODE', defaultValue: false, description: 'Run tests in Playwright UI mode')
     }
     
     environment {

@@ -1,61 +1,93 @@
+/**
+ * Playwright Configuration for Technical Evaluation Framework
+ * 
+ * This configuration demonstrates enterprise-level test automation setup
+ * with multi-project architecture, comprehensive reporting, and environment-specific
+ * settings. The configuration supports both authenticated and unauthenticated test
+ * execution with proper project separation.
+ * 
+ * Architecture Highlights:
+ * - Multi-project setup for different test types
+ * - Storage state management for authentication
+ * - Comprehensive reporting (HTML, JSON, JUnit)
+ * - Environment-aware configuration
+ * - CI/CD optimized settings
+ */
+
 import { defineConfig, devices } from '@playwright/test';
 
-/**
- * @see https://playwright.dev/docs/test-configuration
- */
 export default defineConfig({
   testDir: './tests',
-  /* Run tests in files in parallel */
+  
+  // Enable parallel test execution for faster test runs
   fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  
+  // Prevent accidental test.only in CI environments
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
+  
+  // Retry failed tests in CI for stability
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
+  
+  // Limit workers in CI to prevent resource conflicts
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  // Comprehensive reporting configuration for different stakeholders
   reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results/results.json' }],
-    ['junit', { outputFile: 'test-results/results.xml' }]
+    ['list'],                                                    // Console output with test results
+    ['html', { outputFolder: 'playwright-report' }],            // Interactive HTML report
+    ['json', { outputFile: 'test-results/results.json' }],      // Machine-readable JSON output
+    ['junit', { outputFile: 'test-results/results.xml' }]       // JUnit XML for CI/CD integration
   ],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  
+  // Global settings applied to all test projects
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
+    // Base URL configuration (uncomment and modify as needed)
     // baseURL: 'http://127.0.0.1:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    // Trace collection for debugging failed tests
     trace: 'on-first-retry',
     
-    /* Take screenshot on failure */
+    // Screenshot capture on test failures for debugging
     screenshot: 'only-on-failure',
     
-    /* Record video on failure */
+    // Video recording for failed tests to aid in debugging
     video: 'retain-on-failure',
     
-    /* Global timeout for each action */
-    actionTimeout: 10000,
-    
-    /* Global timeout for navigation */
-    navigationTimeout: 30000,
+    // Global timeouts for better test stability
+    actionTimeout: 10000,        // Maximum time for individual actions
+    navigationTimeout: 30000,    // Maximum time for page navigation
   },
 
-  /* Configure projects for major browsers - Desktop Only */
+  // Multi-project configuration for different test types and environments
   projects: [
-    // Setup project for authentication
+    // Authentication setup project - runs first to create storage state
     {
       name: 'setup',
       testMatch: /.*\.setup\.js/,
+      testDir: './',
     },
-    // Main test project with storage state
+    
+    // Main authenticated test project - uses storage state for efficiency
     {
       name: 'chromium',
+      testDir: './tests',
       use: { 
         ...devices['Desktop Chrome'],
-        // Use storage state from authentication setup
+        // Pre-authenticated state for faster test execution
         storageState: 'auth-state.json',
       },
-      dependencies: ['setup'],
+      dependencies: ['setup'],  // Ensure authentication runs first
+      testMatch: /.*(web-application|mobile-application|performance-tests)\.spec\.js/,
+    },
+    
+    // Unauthenticated test project - clean state for security testing
+    {
+      name: 'unauthenticated-tests',
+      testDir: './tests',
+      use: { 
+        ...devices['Desktop Chrome'],
+        // No storage state - clean browser for security tests
+      },
+      testMatch: /.*(security-tests|login)\.spec\.js/,
     }
 /*
     {

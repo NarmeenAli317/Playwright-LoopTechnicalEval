@@ -4,22 +4,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Test results
+# Playwright
 test-results/
 playwright-report/
-test-results.xml
-test-results.json
-
-# Playwright
-.playwright/
-
-# Screenshots and videos
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.webm
-*.mp4
+playwright/.cache/
+auth-state.json
 
 # Environment variables
 .env
@@ -28,20 +17,112 @@ test-results.json
 .env.test.local
 .env.production.local
 
-# IDE
+# IDE and Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Logs
 logs/
 *.log
 
-# Temporary files
-temp/
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
 tmp/
+temp/
+
+# Playwright specific
+test-results/
+playwright-report/
+playwright/.cache/
+auth-state.json
+
+# Test artifacts
+screenshots/
+videos/
+traces/
+
+# Build artifacts
+dist/
+build/
+
+# Lock files (keep package-lock.json for consistency)
+# yarn.lock
+
+# Local development
+.local/

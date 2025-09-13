@@ -5,12 +5,10 @@ export class KanbanPage {
     constructor(page) {
         this.page = page;
         this.handler = new PlaywrightHandler(page);
+        this.toDoColumn = page.locator('h2:has-text("To Do")');
+        this.inProgressColumn = page.locator('h2:has-text("In Progress")');
+        this.doneColumn = page.locator('h2:has-text("Done")');
     }
-
-    // Selectors - following POM pattern
-    get toDoColumn() { return this.page.locator('h2:has-text("To Do")'); }
-    get inProgressColumn() { return this.page.locator('h2:has-text("In Progress")'); }
-    get doneColumn() { return this.page.locator('h2:has-text("Done")'); }
 
     async waitForKanbanBoard() {
         try {
@@ -305,7 +303,7 @@ export class KanbanPage {
             return {
                 found: true,
                 title: taskResult.title,
-                actualTags: actualTags,
+                tags: actualTags,
                 tagsMatch: tagsMatch,
                 column: columnName
             };

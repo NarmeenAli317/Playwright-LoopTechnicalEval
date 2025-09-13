@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { LoginManager } from '../../shared/LoginManager.js';
+import { PageFactory } from '../../shared/PageFactory.js';
 import { createSection, debugLog, initDebugMode } from '../../shared/debug.js';
 import { TEST_DATA } from '../../shared/env.js';
 import { releaseTest, smokeTest } from '../../shared/test-wrappers.js';
@@ -11,7 +12,7 @@ initDebugMode();
 test.describe('Security Tests - Data Driven', () => {
     // Data-driven security tests from JSON
     testData.negativeTestScenarios.forEach((testScenario) => {
-        smokeTest(testScenario.testName, {
+        smokeTest(`${testScenario.testKey} - ${testScenario.testName}`, {
             testTypes: testScenario.testTypes,
             testKey: testScenario.testKey
         }, async ({ page }) => {
@@ -19,28 +20,27 @@ test.describe('Security Tests - Data Driven', () => {
             
             try {
                 await section.start();
-                await debugLog(`Executing ${testScenario.testId}: ${testScenario.description}`, 'INFO');
+                await debugLog(`Executing ${testScenario.testKey}: ${testScenario.description}`, 'INFO');
 
                 // Navigate to login page
                 await page.goto(TEST_DATA.LOGIN.URL);
                 await debugLog('Navigated to login page', 'INFO');
 
                 // Fill invalid credentials (data-driven)
-                await page.getByRole('textbox', { name: 'Username' }).fill(testScenario.email);
+                await page.getByRole('textbox', { name: 'Username' }).fill(testScenario.username);
                 await page.getByRole('textbox', { name: 'Password' }).fill(testScenario.password);
                 await page.getByRole('button', { name: 'Sign in' }).click();
                 await page.waitForTimeout(2000);
                 
                 // Verify login failure (data-driven)
-                const currentUrl = page.url();
-                expect(currentUrl).toContain('login');
-                await debugLog(`✓ ${testScenario.testId} - Login properly rejected`, 'SUCCESS');
+                await expect(page.locator('div.text-red-500.text-sm')).toContainText('Invalid username or password');
+                await debugLog(`${testScenario.testKey} - Login properly rejected`, 'SUCCESS');
 
                 // Verify no unauthorized access to protected pages
-                await debugLog('Verifying no unauthorized access...', 'INFO');
-                const dashboardElements = await page.locator('text=Dashboard').count(); 
-                expect(dashboardElements).toBe(0);
-                await debugLog('✓ No unauthorized access to protected content', 'SUCCESS');
+                const pages = PageFactory.createPages(page);
+                const isNotAuthenticated = await pages.dashboardPage.verifyUserIsNotAuthenticated();
+                expect(isNotAuthenticated).toBe(true);
+                await debugLog('No unauthorized access to protected content', 'SUCCESS');
 
             } catch (error) {
                 await debugLog(`${testScenario.testId} failed: ${error.message}`, 'ERROR');
@@ -73,20 +73,18 @@ test.describe('Security Tests - Data Driven', () => {
             await page.waitForTimeout(2000);
             
             // Verify login failure
-            const currentUrl = page.url();
-            expect(currentUrl).toContain('login');
-            await debugLog('✓ Invalid email properly rejected', 'SUCCESS');
+            await expect(page.locator('div.text-red-500.text-sm')).toContainText('Invalid username or password');
+            await debugLog('Invalid email properly rejected', 'SUCCESS');
 
             // Try with invalid password
-            await page.getByRole('textbox', { name: 'Username' }).fill(TEST_DATA.LOGIN.EMAIL);
+            await page.getByRole('textbox', { name: 'Username' }).fill(TEST_DATA.LOGIN.USERNAME);
             await page.getByRole('textbox', { name: 'Password' }).fill('wrongpassword');
             await page.getByRole('button', { name: 'Sign in' }).click();
             await page.waitForTimeout(2000);
             
             // Verify login failure
-            const currentUrl2 = page.url();
-            expect(currentUrl2).toContain('login');
-            await debugLog('✓ Invalid password properly rejected', 'SUCCESS');
+            await expect(page.locator('div.text-red-500.text-sm')).toContainText('Invalid username or password');
+            await debugLog('Invalid password properly rejected', 'SUCCESS');
 
         } catch (error) {
             await debugLog(`Authentication security test failed: ${error.message}`, 'ERROR');
@@ -114,7 +112,6 @@ test.describe('Security Tests - Data Driven', () => {
             // Verify session is maintained
             const currentUrl = page.url();
             expect(currentUrl).not.toContain('login');
-            await debugLog('✓ Session established and maintained', 'SUCCESS');
 
             // Test session persistence across navigation
             const pages = loginResult.pages;
@@ -123,7 +120,7 @@ test.describe('Security Tests - Data Driven', () => {
             
             const finalUrl = page.url();
             expect(finalUrl).not.toContain('login');
-            await debugLog('✓ Session maintained across navigation', 'SUCCESS');
+            await debugLog('Session maintained across navigation', 'SUCCESS');
 
         } catch (error) {
             await debugLog(`Session security test failed: ${error.message}`, 'ERROR');
@@ -153,9 +150,8 @@ test.describe('Security Tests - Data Driven', () => {
             await page.waitForTimeout(2000);
             
             // Verify injection attempt is rejected
-            const currentUrl = page.url();
-            expect(currentUrl).toContain('login');
-            await debugLog('✓ SQL injection attempt properly rejected', 'SUCCESS');
+            await expect(page.locator('div.text-red-500.text-sm')).toContainText('Invalid username or password');
+            await debugLog('SQL injection attempt properly rejected', 'SUCCESS');
 
             // Test XSS attempt
             await page.getByRole('textbox', { name: 'Username' }).fill('<script>alert("xss")</script>');
@@ -164,9 +160,8 @@ test.describe('Security Tests - Data Driven', () => {
             await page.waitForTimeout(2000);
             
             // Verify XSS attempt is rejected
-            const currentUrl2 = page.url();
-            expect(currentUrl2).toContain('login');
-            await debugLog('✓ XSS attempt properly rejected', 'SUCCESS');
+            await expect(page.locator('div.text-red-500.text-sm')).toContainText('Invalid username or password');
+            await debugLog('XSS attempt properly rejected', 'SUCCESS');
 
         } catch (error) {
             await debugLog(`Input validation security test failed: ${error.message}`, 'ERROR');
