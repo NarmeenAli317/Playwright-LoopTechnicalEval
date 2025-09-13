@@ -1,0 +1,137 @@
+{
+  "testScenarios": [
+    {
+      "testId": "TC1",
+      "testName": "Verify user authentication task in To Do column",
+      "description": "Login to Demo App, navigate to Web Application, verify 'Implement user authentication' is in the 'To Do' column with tags 'Feature' and 'High Priority'",
+      "application": "Web Application",
+      "column": "To Do",
+      "taskName": "Implement user authentication",
+      "expectedTags": ["Feature", "High Priority"],
+      "testTypes": ["ui", "Feature", "High Priority"],
+      "testKey": "TC1",
+      "priority": "high",
+      "category": "regression"
+    },
+    {
+      "testId": "TC2",
+      "testName": "Verify navigation bug task in To Do column",
+      "description": "Login to Demo App, navigate to Web Application, verify 'Fix navigation bug' is in the 'To Do' column with tag 'Bug'",
+      "application": "Web Application",
+      "column": "To Do",
+      "taskName": "Fix navigation bug",
+      "expectedTags": ["Bug"],
+      "testTypes": ["ui", "Bug"],
+      "testKey": "TC2",
+      "priority": "medium",
+      "category": "regression"
+    },
+    {
+      "testId": "TC3",
+      "testName": "Verify design system updates task in In Progress column",
+      "description": "Login to Demo App, navigate to Web Application, verify 'Design system updates' is in the 'In Progress' column with tag 'Design'",
+      "application": "Web Application",
+      "column": "In Progress",
+      "taskName": "Design system updates",
+      "expectedTags": ["Design"],
+      "testTypes": ["ui", "Design"],
+      "testKey": "TC3",
+      "priority": "medium",
+      "category": "regression"
+    },
+    {
+      "testId": "TC4",
+      "testName": "Verify push notification system task in To Do column",
+      "description": "Login to Demo App, navigate to Mobile Application, verify 'Push notification system' is in the 'To Do' column with tag 'Feature'",
+      "application": "Mobile Application",
+      "column": "To Do",
+      "taskName": "Push notification system",
+      "expectedTags": ["Feature"],
+      "testTypes": ["ui", "Feature"],
+      "testKey": "TC4",
+      "priority": "medium",
+      "category": "smoke"
+    },
+    {
+      "testId": "TC5",
+      "testName": "Verify offline mode task in In Progress column",
+      "description": "Login to Demo App, navigate to Mobile Application, verify 'Offline mode' is in the 'In Progress' column with tags 'Feature' and 'High Priority'",
+      "application": "Mobile Application",
+      "column": "In Progress",
+      "taskName": "Offline mode",
+      "expectedTags": ["Feature", "High Priority"],
+      "testTypes": ["ui", "Feature", "High Priority"],
+      "testKey": "TC5",
+      "priority": "high",
+      "category": "smoke"
+    },
+    {
+      "testId": "TC6",
+      "testName": "Verify app icon design task in Done column",
+      "description": "Login to Demo App, navigate to Mobile Application, verify 'App icon design' is in the 'Done' column with tag 'Design'",
+      "application": "Mobile Application",
+      "column": "Done",
+      "taskName": "App icon design",
+      "expectedTags": ["Design"],
+      "testTypes": ["ui", "Design"],
+      "testKey": "TC6",
+      "priority": "low",
+      "category": "regression"
+    }
+  ],
+  "negativeTestScenarios": [
+    {
+      "testId": "NEG_LOGIN_INVALID_PASSWORD",
+      "testName": "Negative Test - Invalid Password",
+      "description": "Test login with valid email but invalid password",
+      "email": "admin",
+      "password": "wrongpassword",
+      "expectedResult": "login_failure",
+      "testTypes": ["ui", "security"],
+      "testKey": "NEG_LOGIN_INVALID_PASSWORD",
+      "category": "regression"
+    },
+    {
+      "testId": "NEG_LOGIN_INVALID_EMAIL",
+      "testName": "Negative Test - Invalid Email",
+      "description": "Test login with invalid email but valid password",
+      "email": "invalid@email.com",
+      "password": "password123",
+      "expectedResult": "login_failure",
+      "testTypes": ["ui", "security"],
+      "testKey": "NEG_LOGIN_INVALID_EMAIL",
+      "category": "regression"
+    },
+    {
+      "testId": "NEG_LOGIN_INVALID_BOTH",
+      "testName": "Negative Test - Invalid Credentials",
+      "description": "Test login with both invalid email and password",
+      "email": "fake@user.com",
+      "password": "fakepass123",
+      "expectedResult": "login_failure",
+      "testTypes": ["ui", "security"],
+      "testKey": "NEG_LOGIN_INVALID_BOTH",
+      "category": "regression"
+    }
+  ],
+  "performanceTestScenarios": [
+    {
+      "testId": "PERF_LOGIN",
+      "testName": "Login Performance Test",
+      "description": "Measure login performance and validate response times",
+      "maxLoginTime": 3000,
+      "testTypes": ["performance", "smoke"],
+      "testKey": "PERF_LOGIN",
+      "category": "smoke"
+    },
+    {
+      "testId": "PERF_NAVIGATION",
+      "testName": "Navigation Performance Test",
+      "description": "Measure navigation performance between applications",
+      "maxNavigationTime": 2000,
+      "testTypes": ["performance", "smoke"],
+      "testKey": "PERF_NAVIGATION",
+      "category": "smoke"
+    }
+  ]
+}

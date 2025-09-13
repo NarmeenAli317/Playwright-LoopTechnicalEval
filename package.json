@@ -1,0 +1,54 @@
+{
+  "name": "playwright-eval",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Data-driven Playwright test suite for Asana demo application technical evaluation",
+  "main": "index.js",
+  "scripts": {
+    "setup": "npm install && npm run install:browsers && playwright install",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:web": "playwright test tests/web-application/",
+    "test:mobile": "playwright test tests/mobile-application/",
+    "test:smoke": "playwright test --grep '@smoke'",
+    "test:regression": "playwright test --grep '@regression'",
+    "test:release": "playwright test --grep '@release'",
+    "test:ui": "playwright test --grep '@ui'",
+    "test:security": "playwright test --grep '@security'",
+    "test:performance": "playwright test --grep '@performance'",
+    "test:feature": "playwright test --grep '@Feature'",
+    "test:bug": "playwright test --grep '@Bug'",
+    "test:design": "playwright test --grep '@Design'",
+    "test:high-priority": "playwright test --grep '@High Priority'",
+    "test:storage-state": "playwright test --project=chromium",
+    "test:demo": "cross-env ENV=DEMO playwright test",
+    "test:uat": "cross-env ENV=UAT playwright test",
+    "test:prod": "cross-env ENV=PROD playwright test",
+    "test:demo:headed": "cross-env ENV=DEMO playwright test --headed",
+    "test:uat:headed": "cross-env ENV=UAT playwright test --headed",
+    "test:prod:headed": "cross-env ENV=PROD playwright test --headed",
+    "test:demo:smoke": "cross-env ENV=DEMO playwright test --grep '@smoke'",
+    "test:uat:smoke": "cross-env ENV=UAT playwright test --grep '@smoke'",
+    "test:prod:smoke": "cross-env ENV=PROD playwright test --grep '@smoke'"
+  },
+  "keywords": [
+    "playwright",
+    "testing",
+    "automation",
+    "data-driven",
+    "asana",
+    "technical-evaluation"
+  ],
+  "author": "QA Technical Evaluation",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.42.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "dotenv": "^17.2.2"
+  }
+}
