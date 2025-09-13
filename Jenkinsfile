@@ -2,12 +2,42 @@ pipeline {
     agent { label 'QA' }
     
     parameters {
-        choice(name: 'TEST_SUITE', choices: ['all', 'web', 'mobile', 'smoke', 'regression'], description: 'Select test suite to run')
+        choice(
+            name: 'TEST_ENVIRONMENT',
+            choices: ['DEMO', 'UAT', 'PROD'],
+            description: 'Select the test environment'
+        )
+        choice(
+            name: 'NPM_SCRIPT',
+            choices: [
+                'test',
+                'test:web',
+                'test:mobile',
+                'test:login',
+                'test:security',
+                'test:performance',
+                'test:smoke',
+                'test:regression',
+                'test:release',
+                'test:ui',
+                'test:feature',
+                'test:bug',
+                'test:design',
+                'test:high-priority'
+            ],
+            description: 'Select the npm script to run'
+        )
+        string(
+            name: 'CUSTOM_SCRIPT',
+            defaultValue: '',
+            description: 'Custom npm script name (if not in the list above)'
+        )
     }
     
     environment {
         NODE_OPTIONS = '--max-old-space-size=4096'
         PLAYWRIGHT_BROWSERS_PATH = "${WORKSPACE}/.playwright"
+        ENV = "${params.TEST_ENVIRONMENT}"
         CI = 'true'
     }
     
@@ -22,6 +52,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Setting up Playwright evaluation environment..."
+                    echo "Environment: ${ENV}"
                     node --version
                     npm --version
                     
@@ -33,6 +64,7 @@ pipeline {
                     
                     # Create test results directory
                     mkdir -p test-results || true
+                    mkdir -p playwright-report || true
                     
                     # Verify setup
                     if [ ! -f package.json ]; then
@@ -48,41 +80,28 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    def scriptToRun = "npm run test"
+                    def scriptToRun = ''
                     
-                    // Determine test suite
-                    switch(params.TEST_SUITE) {
-                        case 'web':
-                            scriptToRun = "npm run test:web"
-                            break
-                        case 'mobile':
-                            scriptToRun = "npm run test:mobile"
-                            break
-                        case 'smoke':
-                            scriptToRun = "npm run test:smoke"
-                            break
-                        case 'regression':
-                            scriptToRun = "npm run test:regression"
-                            break
-                        case 'all':
-                        default:
-                            scriptToRun = "npm run test"
-                            break
+                    if (params.CUSTOM_SCRIPT?.trim()) {
+                        scriptToRun = params.CUSTOM_SCRIPT.trim()
+                        echo "Using custom script: ${scriptToRun}"
+                    } else if (params.NPM_SCRIPT) {
+                        scriptToRun = params.NPM_SCRIPT
+                        echo "Using selected npm script: ${scriptToRun}"
+                    } else {
+                        error "Please select or provide an npm script to run"
                     }
                     
-                    // Add mode flags
-                    if (params.HEADED_MODE) {
-                        scriptToRun = scriptToRun.replace('test:', 'test:headed:').replace('test ', 'test:headed ')
-                    }
-                    if (params.DEBUG_MODE) {
-                        scriptToRun = scriptToRun.replace('test:', 'test:debug:').replace('test ', 'test:debug ')
-                    }
-                    if (params.UI_MODE) {
-                        scriptToRun = scriptToRun.replace('test:', 'test:ui:').replace('test ', 'test:ui ')
+                    // Validate script exists before running
+                    def packageJson = readJSON file: 'package.json'
+                    if (!packageJson.scripts.containsKey(scriptToRun)) {
+                        error "Script '${scriptToRun}' not found in package.json. Available scripts: ${packageJson.scripts.keySet().join(', ')}"
                     }
                     
-                    echo "Executing: ${scriptToRun}"
-                    sh scriptToRun
+                    echo "Executing: npm run ${scriptToRun} with ENV=${env.ENV}"
+                    
+                    // Run the test with concise output
+                    sh "npm run ${scriptToRun} -- --reporter=line"
                 }
             }
         }
@@ -138,6 +157,7 @@ pipeline {
         
         success {
             echo "✅ Build completed successfully!"
+            echo "Test results and artifacts have been archived"
         }
     }
 }
