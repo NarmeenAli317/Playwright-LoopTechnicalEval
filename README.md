@@ -8,6 +8,13 @@ A comprehensive, data-driven Playwright test suite designed for technical evalua
 - **Node.js**: >= 18.0.0
 - **npm**: >= 8.0.0
 
+### Single Data-Driven Test (TC1–TC6)
+Run the entire evaluation as a single data-driven test that loops through scenarios from `test-data.json` (TC1–TC6 only):
+```bash
+npm run test:datadriven
+```
+This executes `tests/data-driven.spec.js` under the `chromium` project (pre-authenticated via `auth.setup.js` → `auth-state.json`). It performs strict assertions; any mismatch will fail the spec.
+
 ### Installation & Setup
 ```bash
 # 1. Clone the repository and create .env
