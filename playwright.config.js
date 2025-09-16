@@ -76,7 +76,7 @@ export default defineConfig({
         storageState: 'auth-state.json',
       },
       dependencies: ['setup'],  // Ensure authentication runs first
-      testMatch: /.*(web-application|mobile-application|performance-tests)\.spec\.js/,
+      testMatch: /.*(web-application|mobile-application|performance-tests|data-driven)\.spec\.js/,
     },
     
     // Unauthenticated test project - clean state for security testing
